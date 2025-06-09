@@ -12,20 +12,18 @@ import TeacherDetail from "./components/TeacherDetail";
 import StudentGrades from "./components/StudentGrades";
 import AddGrade from "./components/AddGrade";
 import EditGrade from "./components/EditGrade";
+import EditTeacher from "./components/EditTeacher";  // تم الاستيراد
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { app } from "./firebase";
 
-// تهيئة قاعدة بيانات Firestore
 const db = getFirestore(app);
 
-// مكون يحمي الصفحات التي تتطلب تسجيل دخول
 const PrivateRoute = ({ children }) => {
-  const { currentUser } = useAuth(); // جلب المستخدم الحالي من سياق المصادقة
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [showMessage, setShowMessage] = useState(false);
 
-  // إذا لم يكن المستخدم مسجل دخول، عرض رسالة ثم إعادة التوجيه للصفحة تسجيل الدخول
   useEffect(() => {
     if (!currentUser) {
       setShowMessage(true);
@@ -35,7 +33,6 @@ const PrivateRoute = ({ children }) => {
     }
   }, [currentUser, navigate]);
 
-  // عرض رسالة للمستخدم إذا لم يكن مسجل دخول
   if (!currentUser && showMessage) {
     return (
       <div
@@ -56,16 +53,13 @@ const PrivateRoute = ({ children }) => {
     );
   }
 
-  // عرض المحتوى المحمي إذا كان المستخدم مسجل دخول
   return currentUser ? children : null;
 };
 
-// المكون الرئيسي داخل الـ Router الذي يدير التلاميذ ويعرض الصفحات حسب الرابط
 const AppContent = () => {
-  const location = useLocation(); // لمعرفة رابط الصفحة الحالي
-  const [students, setStudents] = useState([]); // حالة لتخزين قائمة التلاميذ
+  const location = useLocation();
+  const [students, setStudents] = useState([]);
 
-  // جلب التلاميذ من قاعدة البيانات
   const fetchStudents = async () => {
     try {
       const snapshot = await getDocs(collection(db, "students"));
@@ -79,38 +73,34 @@ const AppContent = () => {
     }
   };
 
-  // جلب التلاميذ مرة واحدة عند تحميل المكون
   useEffect(() => {
     fetchStudents();
   }, []);
 
-  // إضافة تلميذ جديد إلى قاعدة البيانات
   const addStudent = async (student) => {
     try {
       await addDoc(collection(db, "students"), student);
-      fetchStudents(); // تحديث القائمة بعد الإضافة
+      fetchStudents();
     } catch (error) {
       console.error("فشل في إضافة التلميذ:", error);
     }
   };
 
-  // تعديل بيانات تلميذ موجود
   const updateStudent = async (id, updatedStudent) => {
     try {
       const studentRef = doc(db, "students", id);
       await updateDoc(studentRef, updatedStudent);
-      fetchStudents(); // تحديث القائمة بعد التعديل
+      fetchStudents();
     } catch (error) {
       console.error("فشل في تعديل التلميذ:", error);
     }
   };
 
-  // حذف تلميذ من قاعدة البيانات
   const deleteStudent = async (id) => {
     try {
       const studentRef = doc(db, "students", id);
       await deleteDoc(studentRef);
-      fetchStudents(); // تحديث القائمة بعد الحذف
+      fetchStudents();
     } catch (error) {
       console.error("فشل في حذف التلميذ:", error);
     }
@@ -118,15 +108,11 @@ const AppContent = () => {
 
   return (
     <div className="container">
-      {/* عرض شريط التنقل إلا في صفحات تسجيل الدخول والتسجيل */}
       {location.pathname !== "/login" && location.pathname !== "/signup" && <NavBar />}
 
-      {/* تعريف روابط التطبيق والمكونات المرتبطة بها */}
       <Routes>
-        {/* صفحة قائمة التلاميذ مع إمكانية الحذف */}
         <Route path="/" element={<StudentList students={students} onDelete={deleteStudent} />} />
 
-        {/* صفحة إضافة تلميذ (محمية بتسجيل دخول) */}
         <Route
           path="/add"
           element={
@@ -136,7 +122,6 @@ const AppContent = () => {
           }
         />
 
-        {/* صفحة تعديل تلميذ (محمية بتسجيل دخول) */}
         <Route
           path="/edit/:id"
           element={
@@ -146,7 +131,6 @@ const AppContent = () => {
           }
         />
 
-        {/* صفحة تفاصيل التلميذ (محمية) */}
         <Route
           path="/student/:id"
           element={
@@ -156,7 +140,6 @@ const AppContent = () => {
           }
         />
 
-        {/* صفحة عرض درجات التلميذ (محمية) */}
         <Route
           path="/student/:id/grades"
           element={
@@ -166,7 +149,6 @@ const AppContent = () => {
           }
         />
 
-        {/* صفحة إضافة درجة للتلميذ (محمية) */}
         <Route
           path="/student/:id/grades/add"
           element={
@@ -176,7 +158,6 @@ const AppContent = () => {
           }
         />
 
-        {/* صفحة تعديل درجة للتلميذ (محمية) */}
         <Route
           path="/student/:id/grades/edit/:gradeId"
           element={
@@ -186,7 +167,6 @@ const AppContent = () => {
           }
         />
 
-        {/* صفحة إضافة معلم (محمية) */}
         <Route
           path="/add-teacher"
           element={
@@ -196,7 +176,6 @@ const AppContent = () => {
           }
         />
 
-        {/* صفحة قائمة المعلمين (محمية) */}
         <Route
           path="/teachers"
           element={
@@ -206,7 +185,6 @@ const AppContent = () => {
           }
         />
 
-        {/* صفحة تفاصيل معلم (محمية) */}
         <Route
           path="/teacher/:id"
           element={
@@ -216,17 +194,23 @@ const AppContent = () => {
           }
         />
 
-        {/* صفحة تسجيل الدخول */}
-        <Route path="/login" element={<Login />} />
+        {/* *** إضافة مسار تعديل بيانات الأستاذ هنا *** */}
+        <Route
+          path="/teacher/:id/edit"
+          element={
+            <PrivateRoute>
+              <EditTeacher />
+            </PrivateRoute>
+          }
+        />
 
-        {/* صفحة تسجيل حساب جديد */}
+        <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
       </Routes>
     </div>
   );
 };
 
-// المكون الأساسي للتطبيق يحتوي Router وسياق المصادقة
 function App() {
   return (
     <BrowserRouter>
