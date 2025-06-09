@@ -1,0 +1,12 @@
+specVersion: "v1"
+serviceId: "student-manager"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "fdcdb"
+      cloudSql:
+        instanceId: "student-manager-fdc"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]
